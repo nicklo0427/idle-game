@@ -6,26 +6,36 @@
       <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
         <!-- 玩家狀態 (桌機版) -->
         <div class="p-6 border-b border-gray-200">
-          <h2 class="text-2xl font-bold text-gray-800 mb-4">勇者 Lv.1</h2>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-gray-800">勇者 Lv.1</h2>
+            <router-link 
+              to="/demo" 
+              class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-md hover:bg-blue-200 transition-colors"
+            >
+              Demo
+            </router-link>
+          </div>
           <div class="space-y-3">
-            <div class="space-y-1">
-              <div class="flex justify-between text-sm">
-                <span class="text-health font-medium">HP</span>
-                <span class="text-gray-600">100/100</span>
-              </div>
-              <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
-                <div class="progress-health" style="width: 100%"></div>
-              </div>
-            </div>
-            <div class="space-y-1">
-              <div class="flex justify-between text-sm">
-                <span class="text-experience font-medium">EXP</span>
-                <span class="text-gray-600">30/100</span>
-              </div>
-              <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
-                <div class="progress-experience" style="width: 30%"></div>
-              </div>
-            </div>
+            <!-- 使用 ProgressBar 组件替换原生进度条 -->
+            <ProgressBar
+              :value="playerStats.hp"
+              :max="playerStats.maxHp"
+              variant="health"
+              size="md"
+              label="HP"
+              :show-value="true"
+              :animated="true"
+            />
+
+            <ProgressBar
+              :value="playerStats.exp"
+              :max="playerStats.maxExp"
+              variant="experience"
+              size="md"
+              label="EXP"
+              :show-value="true"
+              :animated="true"
+            />
           </div>
         </div>
 
@@ -64,13 +74,16 @@
                   <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <h4 class="text-lg font-semibold mb-4">探索進度</h4>
                     <div class="space-y-3">
-                      <div class="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          class="progress-explore transition-all duration-300"
-                          :style="{ width: exploreProgress + '%' }"
-                        ></div>
-                      </div>
-                      <p class="text-gray-600">進度: {{ Math.round(exploreProgress) }}%</p>
+                      <!-- 使用 ProgressBar 组件替换探索进度条 -->
+                      <ProgressBar
+                        :value="exploreProgress"
+                        :max="100"
+                        variant="explore"
+                        size="lg"
+                        :show-value="true"
+                        :animated="true"
+                        :animation-duration="500"
+                      />
 
                       <!-- 探索狀態文字 -->
                       <p v-if="isExploring" class="text-primary-600 font-medium">
@@ -157,28 +170,36 @@
       <!-- 玩家狀態條 (手機/平板版) -->
       <div class="bg-white p-4 md:p-6 shadow-md border-b border-gray-200">
         <div class="max-w-2xl mx-auto">
-          <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-2 md:mb-4">勇者 Lv.1</h2>
+          <div class="flex justify-between items-center mb-2 md:mb-4">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800">勇者 Lv.1</h2>
+            <router-link 
+              to="/demo" 
+              class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-md hover:bg-blue-200 transition-colors"
+            >
+              Demo
+            </router-link>
+          </div>
           <div class="grid md:grid-cols-2 gap-3 md:gap-6">
             <!-- HP Bar -->
-            <div class="space-y-1">
-              <div class="flex justify-between text-sm md:text-base">
-                <span class="text-health font-medium">HP</span>
-                <span class="text-gray-600">100/100</span>
-              </div>
-              <div class="h-3 md:h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div class="progress-health" style="width: 100%"></div>
-              </div>
-            </div>
+            <ProgressBar
+              :value="playerStats.hp"
+              :max="playerStats.maxHp"
+              variant="health"
+              size="md"
+              label="HP"
+              :show-value="true"
+              :animated="true"
+            />
             <!-- EXP Bar -->
-            <div class="space-y-1">
-              <div class="flex justify-between text-sm md:text-base">
-                <span class="text-experience font-medium">EXP</span>
-                <span class="text-gray-600">30/100</span>
-              </div>
-              <div class="h-3 md:h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div class="progress-experience" style="width: 30%"></div>
-              </div>
-            </div>
+            <ProgressBar
+              :value="playerStats.exp"
+              :max="playerStats.maxExp"
+              variant="experience"
+              size="md"
+              label="EXP"
+              :show-value="true"
+              :animated="true"
+            />
           </div>
         </div>
       </div>
@@ -193,15 +214,16 @@
             <!-- 平板橫向時顯示更多資訊 -->
             <div class="md:grid md:grid-cols-2 md:gap-8 space-y-6 md:space-y-0">
               <div class="space-y-4">
-                <div class="w-full h-6 md:h-8 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    class="progress-explore transition-all duration-300"
-                    :style="{ width: exploreProgress + '%' }"
-                  ></div>
-                </div>
-                <p class="text-center text-gray-600 text-sm md:text-base">
-                  探索進度: {{ Math.round(exploreProgress) }}%
-                </p>
+                <!-- 使用 ProgressBar 组件替换手机版探索进度条 -->
+                <ProgressBar
+                  :value="exploreProgress"
+                  :max="100"
+                  variant="explore"
+                  size="xl"
+                  :show-value="true"
+                  :animated="true"
+                  :animation-duration="500"
+                />
 
                 <!-- 探索狀態文字 (手機版) -->
                 <p v-if="isExploring" class="text-center text-primary-600 font-medium text-sm md:text-base">
@@ -301,6 +323,7 @@
 
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue'
+import ProgressBar from '@/components/ProgressBar.vue'
 
 const currentTab = ref('explore')
 
@@ -310,6 +333,14 @@ const tabs = [
   { id: 'craft', name: '製作' },
   { id: 'battle', name: '戰鬥' }
 ]
+
+// 玩家状态数据
+const playerStats = ref({
+  hp: 100,
+  maxHp: 100,
+  exp: 30,
+  maxExp: 100
+})
 
 // 探索進度相關
 const isExploring = ref(false)
@@ -366,7 +397,10 @@ const completeExplore = () => {
   exploreProgress.value = 100
   exploreStatusText.value = '探索完成！獲得了一些物品'
 
-  // 這裡之後可以加上獲得獎勵的邏輯
+  // 模拟获得经验值
+  playerStats.value.exp = Math.min(playerStats.value.exp + 20, playerStats.value.maxExp)
+
+  // 这裡之後可以加上獲得獎勵的邏輯
   console.log('探索完成！獲得經驗值和物品')
 
   // 3秒後清除完成訊息
