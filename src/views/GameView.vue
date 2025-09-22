@@ -1,4 +1,3 @@
-<!-- src/views/GameView.vue -->
 <template>
   <div class="min-h-screen flex flex-col bg-gradient-to-br from-primary-50 to-primary-100 mx-auto">
     <!-- 桌機版側邊欄布局 -->
@@ -61,18 +60,37 @@
 
               <div class="grid lg:grid-cols-2 gap-8">
                 <div class="space-y-6">
+                  <!-- 探索進度區域 -->
                   <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <h4 class="text-lg font-semibold mb-4">探索進度</h4>
                     <div class="space-y-3">
                       <div class="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
-                        <div class="progress-explore" style="width: 45%"></div>
+                        <div
+                          class="progress-explore transition-all duration-300"
+                          :style="{ width: exploreProgress + '%' }"
+                        ></div>
                       </div>
-                      <p class="text-gray-600">進度: 45%</p>
+                      <p class="text-gray-600">進度: {{ Math.round(exploreProgress) }}%</p>
+
+                      <!-- 探索狀態文字 -->
+                      <p v-if="isExploring" class="text-primary-600 font-medium">
+                        {{ exploreStatusText }}
+                      </p>
                     </div>
                   </div>
 
-                  <button class="w-full py-4 text-lg font-semibold text-white bg-primary-500 hover:bg-primary-600 rounded-xl transition-all duration-200 transform hover:-translate-y-1">
-                    開始探索
+                  <!-- 開始探索按鈕 -->
+                  <button
+                    :disabled="isExploring"
+                    @click="startExplore"
+                    :class="[
+                      'w-full py-4 text-lg font-semibold rounded-xl transition-all duration-200 transform',
+                      isExploring
+                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                        : 'text-white bg-primary-500 hover:bg-primary-600 hover:-translate-y-1'
+                    ]"
+                  >
+                    {{ isExploring ? '探索中...' : '開始探索' }}
                   </button>
                 </div>
 
@@ -80,7 +98,7 @@
                   <h4 class="text-lg font-semibold mb-4">區域資訊</h4>
                   <div class="space-y-2 text-sm text-gray-600">
                     <p>推薦等級: Lv.1</p>
-                    <p>探索時間: 10秒</p>
+                    <p>探索時間: {{ exploreDuration / 1000 }}秒</p>
                     <p>經驗值獎勵: 20 EXP</p>
                     <p>可能獲得: 木材、草藥</p>
                   </div>
@@ -176,12 +194,31 @@
             <div class="md:grid md:grid-cols-2 md:gap-8 space-y-6 md:space-y-0">
               <div class="space-y-4">
                 <div class="w-full h-6 md:h-8 bg-gray-200 rounded-full overflow-hidden">
-                  <div class="progress-explore" style="width: 45%"></div>
+                  <div
+                    class="progress-explore transition-all duration-300"
+                    :style="{ width: exploreProgress + '%' }"
+                  ></div>
                 </div>
-                <p class="text-center text-gray-600 text-sm md:text-base">探索進度: 45%</p>
+                <p class="text-center text-gray-600 text-sm md:text-base">
+                  探索進度: {{ Math.round(exploreProgress) }}%
+                </p>
 
-                <button class="w-full py-3 md:py-4 text-lg md:text-xl font-semibold text-white bg-primary-500 hover:bg-primary-600 rounded-xl transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0">
-                  開始探索
+                <!-- 探索狀態文字 (手機版) -->
+                <p v-if="isExploring" class="text-center text-primary-600 font-medium text-sm md:text-base">
+                  {{ exploreStatusText }}
+                </p>
+
+                <button
+                  :disabled="isExploring"
+                  @click="startExplore"
+                  :class="[
+                    'w-full py-3 md:py-4 text-lg md:text-xl font-semibold rounded-xl transition-all duration-200 transform active:translate-y-0',
+                    isExploring
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      : 'text-white bg-primary-500 hover:bg-primary-600 hover:-translate-y-0.5'
+                  ]"
+                >
+                  {{ isExploring ? '探索中...' : '開始探索' }}
                 </button>
               </div>
 
@@ -190,7 +227,7 @@
                 <h4 class="font-semibold mb-3">區域資訊</h4>
                 <div class="space-y-2 text-sm text-gray-600">
                   <p>推薦等級: Lv.1</p>
-                  <p>探索時間: 10秒</p>
+                  <p>探索時間: {{ exploreDuration / 1000 }}秒</p>
                   <p>經驗值獎勵: 20 EXP</p>
                   <p>可能獲得: 木材、草藥</p>
                 </div>
@@ -263,7 +300,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 
 const currentTab = ref('explore')
 
@@ -273,4 +310,78 @@ const tabs = [
   { id: 'craft', name: '製作' },
   { id: 'battle', name: '戰鬥' }
 ]
+
+// 探索進度相關
+const isExploring = ref(false)
+const exploreProgress = ref(0)
+const exploreDuration = ref(10000) // 10秒，單位是毫秒
+const exploreStatusText = ref('')
+
+let exploreTimer: number | null = null
+
+// 開始探索功能
+const startExplore = () => {
+  if (isExploring.value) return
+
+  // 重置狀態
+  isExploring.value = true
+  exploreProgress.value = 0
+  exploreStatusText.value = '踏入森林深處...'
+
+  const startTime = Date.now()
+  const updateInterval = 100 // 每100毫秒更新一次，比較流暢
+
+  exploreTimer = setInterval(() => {
+    const elapsed = Date.now() - startTime
+    const progress = Math.min((elapsed / exploreDuration.value) * 100, 100)
+
+    exploreProgress.value = progress
+
+    // 根據進度更新狀態文字
+    if (progress < 25) {
+      exploreStatusText.value = '踏入森林深處...'
+    } else if (progress < 50) {
+      exploreStatusText.value = '發現了一些痕跡...'
+    } else if (progress < 75) {
+      exploreStatusText.value = '正在仔細搜尋...'
+    } else if (progress < 100) {
+      exploreStatusText.value = '準備返回...'
+    }
+
+    // 探索完成
+    if (progress >= 100) {
+      completeExplore()
+    }
+  }, updateInterval)
+}
+
+// 完成探索
+const completeExplore = () => {
+  if (exploreTimer) {
+    clearInterval(exploreTimer)
+    exploreTimer = null
+  }
+
+  isExploring.value = false
+  exploreProgress.value = 100
+  exploreStatusText.value = '探索完成！獲得了一些物品'
+
+  // 這裡之後可以加上獲得獎勵的邏輯
+  console.log('探索完成！獲得經驗值和物品')
+
+  // 3秒後清除完成訊息
+  setTimeout(() => {
+    if (!isExploring.value) {
+      exploreProgress.value = 0
+      exploreStatusText.value = ''
+    }
+  }, 3000)
+}
+
+// 組件卸載時清理計時器
+onUnmounted(() => {
+  if (exploreTimer) {
+    clearInterval(exploreTimer)
+  }
+})
 </script>
